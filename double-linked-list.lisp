@@ -89,9 +89,9 @@
   (let ((record nil))
     (do ()
 	((null dll))
-      (let ((position (dll-pop dll)))
-	(setf dll (cadr position))
-	(setf record (dll-push (car position) record))))
+      (let ((record-and-dll (dll-pop dll)))
+	(setf dll (cadr record-and-dll))
+	(setf record (dll-push (car record-and-dll) record))))
     r))
 	   
 	
