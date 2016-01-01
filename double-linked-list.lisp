@@ -1,3 +1,11 @@
+;;; Advise from shka on lisp (chat.freenode.net):
+;;; "Store both ends of the list, for faster reverse and dll-push-end"
+;;; Advise from mood:
+;;; "More descriptive names, use descriptive functions instead of cddadar"
+;;; Advise from blub:
+;;; "instead of '(when dll ; dll not empty?' you could just write '(when (not (null dll))', just as descriptive but self documenting"
+
+
 
 (defpackage :double-linked-list
   (:use :common-lisp))
