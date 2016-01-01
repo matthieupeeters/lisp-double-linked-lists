@@ -23,15 +23,15 @@
 
 (defun dll-push (item dll)
   "create a new record and add it to the start of lla, and to the end of lld"
-  (let ((r (list nil nil item))) ; positions will be new conses, so nil for now
-    (setf (cadr r)  (cons r nil)) ; cons for lld
-    (setf (car r) (cons r dll)) ; cons for lla
+  (let ((record (list nil nil item))) ; positions will be new conses, so nil for now
+    (setf (cadr record)  (cons record nil)) ; cons for lld
+    (setf (car record) (cons record dll)) ; cons for lla
     (when dll ; dll not empty?
       ;; then add it to the end of lld. This end is pointed to by
       ;; the cadr of the still current first record of lla
       (setf (cdr (cadr (car dll))) 
-	    (cadr r))) ; set the end of lld (is nil) to the new cons
-    (car r)))
+	    (cadr record))) ; set the end of lld (is nil) to the new cons
+    (car record)))
 
 
 
@@ -64,48 +64,48 @@
 (defun dll-nsubseq (dll start &optional (end nil))
   "takes part of a dll, might destroy the old one to save time or conses, or just for fun. "
   ;; This function still takes stupid boring start and end. It should be something more awesome. 
-  (let ((p 0)
-	(r nil))
+  (let ((position 0)
+	(return-value nil))
     (do ()
-	((or (= p start)
+	((or (= position start)
 	     (null dll)))
-      (progn (incf p)
+      (progn (incf position)
 	     (setf dll (cdr dll))))
-    (setf r dll)
-    (incf p)
+    (setf return-value dll)
+    (incf position)
     (when dll (progn
 		(setf (cdadar dll) nil)
 		(do ()
 		    ((or (null (cdr dll))
-			 (and end (>= p end))))
-		  (format t "~a ~&" p)
-		  (progn (incf p)
+			 (and end (>= position end))))
+		  (format t "~a ~&" position)
+		  (progn (incf position)
 			 (setf dll (cdr dll))))
 		(setf (cdr dll) nil))
-	  r)))
+	  return-value)))
   
 (defun dll-reverse (dll)
   "Builds a new dll, with the records of dll in reverse order"
-  (let ((r nil))
+  (let ((record nil))
     (do ()
 	((null dll))
-      (let ((p (dll-pop dll)))
-	(setf dll (cadr p))
-	(setf r (dll-push (car p) r))))
+      (let ((position (dll-pop dll)))
+	(setf dll (cadr position))
+	(setf record (dll-push (car position) record))))
     r))
 	   
 	
 
 (defun dll-nreverse (dll)
   "Reverses the order of the records in dll"
-  (let ((r nil))
+  (let ((new-dll nil))
     (do ()
 	((null dll))
       (progn
 	(rotatef (caar dll) (cadar dll))
-	(setf r (caar dll))
+	(setf new-dll (caar dll))
 	(setf dll (cdr dll))))
-    f))
+    new-dll))
 
 (defun dll-copy (dll)
   "Creates a fresh copy of dll, with fresh cons cells."
@@ -120,7 +120,6 @@
 	(t (dll-count item (cdr dll) :key key :test test))))
 
 
-
 (defun dll-find-record (item dll &key (key #'identity) (test #'eql) start end)
   (cond ((or start end) (dll-count item (dll-subseq dll start end)
 				   :key key :test test))
@@ -133,7 +132,6 @@
   (caddr (dll-find-record item dll :key key :test test :start start :end end)))
 
 (defun dll-position (item dll &key (key #'identity) (test #'eql) start end)
-
   ;; This function is not tail-recursive!! Maybe some cool helper param?
   (cond ((or start end) (+ (or start 0)
 			   (dll-position item (dll-subseq dll start end)
@@ -151,7 +149,7 @@
 (defun dll-delete (item dll &key (key #'identity) (test #'eql) (start 0) (end -1) (count -1))
   "Remove all records that contain item as their contents. "
   ;; I could only make the caddaddadr's in the core by drawing out the structure.
-  (let ((r dll))
+  (let ((return-dll dll))
     (do () ((or (zerop start) (null dll)))
       (progn (decf start)
 	     (setf dll (cdr dll))
@@ -164,14 +162,14 @@
 		      (setf (cdr (cadadr dll)) (cdr (cadar dll)))
 		      ))
 	     (setf dll (cdr dll))))
-    r))
+    return-dll))
 
 (defun dll-remove (item dll &key (key #'identity) (test #'eql) (start 0) (end -1) (count -1))
   (dll-delete item (dll-copy dll) :key key :test test :start start :end end :count count))
 
 (defun dll-nsubstitute (nitem item dll &key (key #'identity) (test #'eql) (start 0) (end -1) (count -1))
   ;; This is so much like dll-delete, i should use a macro
-  (let ((r dll))
+  (let ((return-dll dll))
     (do () ((or (zerop start) (null dll)))
       (progn (decf start)
 	     (setf dll (cdr dll))
@@ -183,7 +181,7 @@
 		      (setf (caddar dll) nitem)
 		      ))
 	     (setf dll (cdr dll))))
-    r))
+    return-dll))
 
 (defun dll-substitute  (nitem item dll &key (key #'identity) (test #'eql) (start 0) (end -1) (count -1))
   (dll-nsubstitute nitem item (dll-copy dll) :key key :test test :start start :end end :count count))
